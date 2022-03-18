@@ -17,7 +17,7 @@ from helpers.sql_queries import SqlQueries
 from airflow.models import Variable
 
 # Config
-#s3_bucket_name = Variable.get("s3_bucket")
+s3_bucket_name = Variable.get("s3_bucket")
 aws_iam_arn = Variable.get("aws_iam_arn")
 
 default_args = {
@@ -49,7 +49,7 @@ for table in Tables.sas_tables:
     dag=dag,
     aws_credentials_id="aws_credentials",
     redshift_conn_id="redshift",
-    s3_bucket="hg-dend", 
+    s3_bucket=s3_bucket_name, 
     s3_key="I94_SAS_Labels_Descriptions.SAS", 
     aws_region="us-east-1",
     parse_value=table.get('parse_string'),
@@ -81,7 +81,7 @@ for table in Tables.csv_parq_tables:
     aws_region="us-east-1",
     table_name=table.get('table_name'),
     file_type=table.get('file_type'),
-    s3_bucket="hg-dend", 
+    s3_bucket=s3_bucket_name, 
     s3_key=table.get('key'), 
     extra_params=table.get('extra_params')
     )
@@ -110,7 +110,7 @@ for table in Tables.csv_stg_tables:
     aws_region="us-east-1",
     table_name=table.get('table_name'),
     file_type=table.get('file_type'),
-    s3_bucket="hg-dend", 
+    s3_bucket=s3_bucket_name, 
     s3_key=table.get('key'), 
     extra_params=table.get('extra_params')
     )
@@ -144,7 +144,7 @@ for table in Tables.csv_stg_tables:
     
 
 
-load_immigraion_stg_table = S3ToRedshiftOperator(
+load_immigration_stg_table = S3ToRedshiftOperator(
     task_id='loading_table_{}'.format(Tables.parq_immigration.get('table_name')),
     dag=dag,
     redshift_conn_id="redshift",
@@ -152,7 +152,7 @@ load_immigraion_stg_table = S3ToRedshiftOperator(
     aws_region="us-east-1",
     table_name=Tables.parq_immigration.get('table_name'),
     file_type=Tables.parq_immigration.get('file_type'),
-    s3_bucket="hg-dend", 
+    s3_bucket=s3_bucket_name, 
     s3_key=Tables.parq_immigration.get('key'), 
     extra_params=Tables.parq_immigration.get('extra_params')
     )
@@ -177,7 +177,7 @@ run_quality_checks = DataQualityOperator(
 
     )
 
-start_operator>>load_immigraion_stg_table>>load_clean_immigration_table>>run_quality_checks>>end_operator
+start_operator>>load_immigration_stg_table>>load_clean_immigration_table>>run_quality_checks>>end_operator
 #start_operator>>load_clean_immigration_table>>run_quality_checks>>end_operator
 
 
