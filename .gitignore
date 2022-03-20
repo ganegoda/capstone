@@ -1,7 +1,10 @@
 .venv
+.vscode
 *.cfg
 .ipynb_checkpoints
 .DS_Store
 ./data
 ./setup_infrastructure.sh
+__pycache__
+setup_infrastructure.sh
 
