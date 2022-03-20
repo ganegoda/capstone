@@ -1,0 +1,7 @@
+.venv
+*.cfg
+.ipynb_checkpoints
+.DS_Store
+./data
+./setup_infrastructure.sh
+

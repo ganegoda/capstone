@@ -1,4 +1,4 @@
-# Udacity Data Engineering Nanodegree Capstone Project
+# I-94 U.S. Immigration Database
 ## Table of Contents
 
 - [Introduction](#introduction)
@@ -13,7 +13,7 @@
 
 
 ## Introduction
-For my data engineering capstone project I developed a data pipeline that creates an analytical database and supporting tables. Analytical database contain US immigration data populated on a monthly basis. Additional datasets are also available in staging tables. Insights can be drawn from main analytical tables or combining with other information tables provided. All data files are hosted in Amazon s3 bucket.  Tables are hosted in Amazon Redshift Database and ETL/ELT pipeline was developed using Apache Airflow.
+For my data engineering capstone project I developed a data pipeline that creates an analytical database and supporting tables. Analytical database contain US immigration data populated on a monthly basis. Additional datasets are also available in staging tables. Insights can be drawn from main analytical tables or combining with other information tables provided. All raw data files are hosted in Amazon s3 bucket.  Tables are hosted in Amazon Redshift Database and ETL/ELT pipeline was developed using Apache Airflow.
 
 ### Datasets
 Following datasets were used to create analytical database:
@@ -26,19 +26,19 @@ Following datasets were used to create analytical database:
 ![I94 immigration data sample2](./images/immig2.png)
 
 
-- World Temperature Data: This kaggle dataset contains city, country, latitude, longitude, average temperature, and temperature uncertainty data.
+- World Temperature Data: This kaggle dataset contains city, country, latitude, longitude, average temperature, and temperature uncertainty data. Data file contains approximately 8.6 million rows.
 
  *World temperature data sample:*
 
 ![world-temperature](./images/world-temp.png)
 
-- U.S. City Demographic Data: This dataset contains information about the demographics of all US cities and census-designated places with a population greater than or equal to 65,0000. Dataset comes from OpenSoft.
+- U.S. City Demographic Data: This dataset contains information about the demographics of all US cities and census-designated places with a population greater than or equal to 65,0000. Dataset comes from OpenSoft. (2891 rows)
 
 *U.S. city demographic data sample:*
 
 ![city-demo](./images/city-demo.png)
 
-- Airport Codes: This dataset contains data on airport codes and corresponding cities. According to wikipedia, The airport codes may refer to either IATA airport code, a three-letter code which is used in passenger reservation, ticketing and baggage-handling systems, or the ICAO airport code which is a four letter code used by ATC systems and for airports that do not have an IATA airport code. 
+- Airport Codes: This dataset contains data on airport codes and corresponding cities. According to wikipedia, The airport codes may refer to either IATA airport code, a three-letter code which is used in passenger reservation, ticketing and baggage-handling systems, or the ICAO airport code which is a four letter code used by ATC systems and for airports that do not have an IATA airport code. Data file contains approximately 55,000 rows.
 
 *Airport Codes data sample:*
 
@@ -50,7 +50,9 @@ Following datasets were used to create analytical database:
 ## Data Model
 U.S. Immigration analytical database has a star schema with one fact table and multiple dimension tables. Dimension tables are directly populated through truncate, copy pattern or special operator that parses and loads the data. Dimension tables are relatively small in size. Consequently, truncate-copy pattern is a reasonable way to to maintain idempotent data pipeline without compromising the performance. Dimension tables are distributed across all nodes for faster query performance. Immigration dataset is first loaded into staging a staging table, which will then be cleaned and populates that fact table.
 
-Additional datasets containing world temperature, US city demographics, and airport codes can be combined with main database to answer various analytical questions. These datasets are loaded into staging tables, cleaned and transformed into more analytical friendly formats.
+Additional datasets containing world temperature, US city demographics, and airport codes can be combined with main database to answer various analytical questions. These datasets are loaded into staging tables, cleaned and transformed into more analytical friendly formats. 
+
+Data dictionary file is available here. [immigration_data_dict.csv](./immigration_data_dict.csv)
 
 Database schema is shown below:
 
@@ -72,14 +74,16 @@ Airflow data pipeline is shown below:
 
 
 ## Initial Setup
-Make sure docker is installed and working properly.
+Follow the steps listed below:
 
-- Load data files to s3 bucket using following key, value structure. Alternatively, use the data in ```hg-dend``` bucket located in aws region us-east-1.
+- Make sure docker is installed and working properly.
+
+- Load data files to s3 bucket using following key, value structure. Alternatively, use the data in ```hg-dend``` s3 bucket located in aws region us-east-1.
 
     ![s3-bucket](./images/s3-bucket.png)
 
-- Create Amazon Redshift cluster. Allow outside access. Configure redshift and security groups for outside access. Create an iam role with s3 read permission then assign role to redshift cluster.
-
+- Create Amazon Redshift cluster. Configure redshift and security groups for outside access. Create an iam role with s3 read permission then assign role to redshift cluster.
+«
 - Create and configure dwh.cfg file based on following format. File should be located in the main project directory.
     ```bash
     [CLUSTER]
@@ -101,7 +105,7 @@ Make sure docker is installed and working properly.
 
 - Run Airflow from airflow directory.
     ```bash
-    docker compose up -d
+    $ docker compose up -d
     ```
 - Access airflow UI from the web browser```localhost:8080```
 
@@ -130,6 +134,6 @@ Make sure docker is installed and working properly.
 
 1. Create Redshift tables.
     ```bash
-    python create_tables.py
+    $ python3 create_tables.py
     ```
 1. Run `etl-dag` in Airflow UI
