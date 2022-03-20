@@ -5,9 +5,15 @@ from airflow.utils.decorators import apply_defaults
 
 
 class S3ToRedshiftOperator(BaseOperator):
-    #template_fields = ("s3_key",)
+    """ Custom operator for loading files from s3 to redshift.
+    Attributes:
+        ui_color (str): color code for task in airflow UI
+        copy_csv_redshift (str): Template field for copying csv files
+        copy_parq_redshift (str): Template field for copying parquet files
+    """
+
     ui_color = '#008080'
-    # Last brace accepts additional parameters to handle file types. ex: for CSV -> IGNOREHEADER True DELIMITER ';' CSV
+    
     copy_csv_redshift = """
         COPY {}
         FROM '{}'
@@ -22,7 +28,6 @@ class S3ToRedshiftOperator(BaseOperator):
         {}
     """    
 
-        #FORMAT AS PARQUET
     @apply_defaults
     def __init__(self,
                  redshift_conn_id="",
@@ -34,7 +39,18 @@ class S3ToRedshiftOperator(BaseOperator):
                  s3_key="",
                  extra_params="",
                  *args, **kwargs):
-
+    
+        """Copies csv or parquet files to redshift
+        Args:
+            redshift_conn_id (str): Airflow connection ID for database
+            aws_iam_arn (str): Redshift database s3 access role arn
+            aws_region (str): aws region 
+            table_name (srt): Name of the target table
+            file_type (str): File type, csv or parquet
+            s3_bucket (str): S3 bucket name
+            s3_key (srt): S3 key for file object
+            extra_params (str): Additional parameters for loading files
+        """
         super(S3ToRedshiftOperator, self).__init__(*args, **kwargs)
         
         self.redshift_conn_id = redshift_conn_id
@@ -48,9 +64,14 @@ class S3ToRedshiftOperator(BaseOperator):
         
 
     def execute(self, context):
-        
+        """Executes task load redshift tables.
+        Args:
+            context (:obj:`dict`): Dict with values to apply on content.
+        Returns:
+            None   
+        """
+
         redshift = PostgresHook(postgres_conn_id=self.redshift_conn_id)
-        
 
         self.log.info(f"Clearing data from destination Redshift table {self.table_name}")
         redshift.run("TRUNCATE {}".format(self.table_name))
@@ -61,6 +82,7 @@ class S3ToRedshiftOperator(BaseOperator):
         
         # extra_params configured for various file types and format conditions
         if self.file_type=='CSV':
+
             formatted_sql = S3ToRedshiftOperator.copy_csv_redshift.format(
                 self.table_name,
                 s3_path,
@@ -69,6 +91,7 @@ class S3ToRedshiftOperator(BaseOperator):
                 self.extra_params
                 )
         elif self.file_type=='PARQUET':
+            
             formatted_sql = S3ToRedshiftOperator.copy_parq_redshift.format(
                 self.table_name,
                 s3_path,
